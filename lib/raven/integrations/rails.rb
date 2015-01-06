@@ -35,4 +35,20 @@ module Raven
       require 'raven/integrations/tasks'
     end
   end
+
+  StacktraceInterface::Frame.class_eval do
+    def filename_with_rails
+      return nil if self.abs_path.nil?
+
+      rails_root = ::Rails.root.realpath.to_s.chomp(File::SEPARATOR)
+      if self.abs_path.start_with?(rails_root)
+        return self.abs_path[rails_root.size+1 .. -1]
+      end
+
+      filename_without_rails
+    end
+
+    alias_method :filename_without_rails, :filename
+    alias_method :filename, :filename_with_rails
+  end
 end
